@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { loadConfig } from "./config.js";
 import { BackendPool } from "./lb/backendPool.js";
 import { HealthTracker } from "./lb/healthState.js";
+import { HealthChecker } from "./lb/healthChecker.js";
 import { Router } from "./lb/router.js";
 import { ProxyServer } from "./lb/server.js";
 
@@ -18,6 +19,7 @@ export function startLoadBalancer(configPath: string) {
   const pool = new BackendPool(config.backends);
   const health = new HealthTracker(pool, config.healthCheck);
   const router = new Router(config);
+  const checker = new HealthChecker(pool, health, config.healthCheck);
 
   const proxy = new ProxyServer({ config, pool, router, health });
   proxy.listen(config.listenPort, () => {
@@ -25,8 +27,9 @@ export function startLoadBalancer(configPath: string) {
       `load balancer listening on :${config.listenPort} (strategy=${config.strategy}, backends=${config.backends.length})`,
     );
   });
+  checker.start();
 
-  return { config, pool, health, router, proxy };
+  return { config, pool, health, router, proxy, checker };
 }
 
 const isMain =
