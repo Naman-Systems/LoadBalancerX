@@ -7,6 +7,7 @@ import { HealthTracker } from "./lb/healthState.js";
 import { HealthChecker } from "./lb/healthChecker.js";
 import { Router } from "./lb/router.js";
 import { ProxyServer } from "./lb/server.js";
+import { StatusServer } from "./lb/statusServer.js";
 
 function configPathFromArgs(argv: string[]): string {
   const flag = argv.find((a) => a.startsWith("--config="));
@@ -29,7 +30,12 @@ export function startLoadBalancer(configPath: string) {
   });
   checker.start();
 
-  return { config, pool, health, router, proxy, checker };
+  const status = new StatusServer({ pool, strategy: config.strategy });
+  status.listen(config.adminPort, () => {
+    console.log(`admin status endpoint on :${config.adminPort}/lb-status`);
+  });
+
+  return { config, pool, health, router, proxy, checker, status };
 }
 
 const isMain =
