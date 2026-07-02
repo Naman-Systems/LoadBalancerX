@@ -1,0 +1,21 @@
+{
+  "listenPort": 8080,
+  "adminPort": 8081,
+  "strategy": "round-robin",
+  "backends": [
+    "localhost:9001",
+    "localhost:9002",
+    "localhost:9003"
+  ],
+  "healthCheck": {
+    "path": "/health",
+    "intervalMs": 2000,
+    "timeoutMs": 1000,
+    "failureThreshold": 3,
+    "recoveryThreshold": 2
+  },
+  "consistentHashing": {
+    "virtualNodes": 100,
+    "hashKeySource": "client-ip"
+  }
+}

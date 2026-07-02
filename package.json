@@ -1,0 +1,21 @@
+{
+  "name": "loadbalancerx",
+  "version": "0.1.0",
+  "description": "A configurable load balancer with pluggable strategies and active health checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "lb": "tsx src/cli.ts",
+    "mock-backend": "tsx src/mockBackend/server.ts",
+    "loadgen": "tsx scripts/loadgen.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  }
+}

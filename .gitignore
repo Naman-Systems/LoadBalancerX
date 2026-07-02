@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+.env
+
+# local Claude Code settings, not part of the project
+.claude/
+
+# scratch/interview notes, never public
+prep/
