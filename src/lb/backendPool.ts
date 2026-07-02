@@ -67,6 +67,22 @@ export class BackendPool {
     backend.inFlight = Math.max(0, backend.inFlight - 1);
   }
 
+  /**
+   * Wraps a request against a backend so the in-flight count is always
+   * incremented before and decremented after, even if the request throws
+   * (connection drop, timeout, 5xx). Least-connections relies on this
+   * symmetry - a missed decrement on the error path silently skews every
+   * later routing decision, so all proxying goes through here.
+   */
+  async trackInFlight<T>(id: string, run: () => Promise<T>): Promise<T> {
+    this.incrementInFlight(id);
+    try {
+      return await run();
+    } finally {
+      this.decrementInFlight(id);
+    }
+  }
+
   incrementRequestCount(id: string): void {
     this.get(id).requestCount += 1;
   }
