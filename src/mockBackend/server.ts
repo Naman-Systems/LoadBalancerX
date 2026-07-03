@@ -2,7 +2,7 @@ import http from "node:http";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-interface MockBackendOptions {
+export interface MockBackendOptions {
   port: number;
   latencyMs: number;
   failRate: number;
@@ -74,7 +74,7 @@ export function createMockBackend(options: MockBackendOptions) {
     }
 
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ port: options.port, requestCount }));
+    res.end(JSON.stringify({ port: req.socket.localPort ?? options.port, requestCount }));
   });
 
   return server;
