@@ -1,6 +1,6 @@
 {
   "name": "loadbalancerx",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A configurable load balancer with pluggable strategies and active health checks",
   "private": true,
   "type": "module",

@@ -141,6 +141,7 @@ assert the routing behaviour end to end.
 
 ## Docs
 
+- [SETUP.md](SETUP.md) — install, configure, run, and deploy.
 - [PRD.md](PRD.md) — what it does and why.
 - [TRD.md](TRD.md) — technical decisions, including the ones worth calling out.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the pieces fit together, with diagrams.

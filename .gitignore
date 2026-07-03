@@ -3,8 +3,11 @@ dist/
 *.log
 .env
 
-# local Claude Code settings, not part of the project
+# local editor/tooling settings, not part of the project
 .claude/
 
 # scratch/interview notes, never public
 prep/
+
+# assignment brief with authoring notes, kept local
+project.md
