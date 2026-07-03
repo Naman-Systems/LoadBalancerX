@@ -42,7 +42,7 @@ export class ProxyServer {
 
   private handle(req: http.IncomingMessage, res: http.ServerResponse): void {
     const context = contextFromRequest(req);
-    const backend = this.deps.router.select(this.deps.pool.getHealthy(), context);
+    const backend = this.deps.router.select(this.deps.pool.getAll(), context);
 
     if (backend === null) {
       res.writeHead(503, { "Content-Type": "application/json" });

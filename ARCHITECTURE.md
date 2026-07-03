@@ -33,8 +33,9 @@
 ## Request flow (proxy path)
 
 1. A request arrives on the proxy port.
-2. `Router.select` is handed the current healthy backends. For consistent
-   hashing it also derives the request's hash key.
+2. `Router.select` is handed the full backend list and each strategy filters
+   for health itself. For consistent hashing it also derives the request's
+   hash key.
 3. If no backend is healthy, respond `503`.
 4. Otherwise bump the backend's request count, then run the proxy inside
    `BackendPool.trackInFlight` so the in-flight count is incremented before
@@ -74,9 +75,11 @@ through `HealthTracker`:
 ```
 
 While UP, the backend is in every strategy's selection pool. The moment it
-goes DOWN it is excluded — the strategies always select from
-`pool.getHealthy()`, so the change takes effect on the very next request, not
-on some later refresh.
+goes DOWN it is excluded — each strategy is handed the full backend list and
+filters out the unhealthy ones itself, so the change takes effect on the very
+next request, not on some later refresh. Round robin in particular needs the
+whole list to keep its cursor stable while skipping the backends that are
+down.
 
 ## Consistent hash ring
 
