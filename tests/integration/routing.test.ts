@@ -1,3 +1,6 @@
+import http from "node:http";
+import type { AddressInfo } from "node:net";
+
 import { describe, it, expect, afterEach } from "vitest";
 
 import {
@@ -92,6 +95,40 @@ describe("consistent hashing routing", () => {
 });
 
 describe("failure handling", () => {
+  it("records success only after the backend response completes", async () => {
+    let finishBody: (() => void) | undefined;
+    let signalBodyStarted: (() => void) | undefined;
+    const bodyStarted = new Promise<void>((resolve) => {
+      signalBodyStarted = resolve;
+    });
+    const server = http.createServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.write("partial");
+      signalBodyStarted?.();
+      finishBody = () => res.end(" complete");
+    });
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const port = (server.address() as AddressInfo).port;
+    const backend = { server, port, id: `localhost:${port}` };
+    backends.push(backend);
+
+    lb = createLoadBalancer(buildConfig("round-robin", [backend.id]));
+    const proxyPort = await listenProxy(lb);
+    const responsePromise = fetch(`http://localhost:${proxyPort}/`);
+
+    try {
+      await bodyStarted;
+      const response = await responsePromise;
+      expect(lb.pool.get(backend.id).consecutiveSuccesses).toBe(0);
+
+      finishBody?.();
+      await response.text();
+      expect(lb.pool.get(backend.id).consecutiveSuccesses).toBe(1);
+    } finally {
+      finishBody?.();
+    }
+  });
+
   it("returns 502 when the chosen backend connection fails", async () => {
     const [dead] = await spawnBackends(1);
     const deadId = dead.id;

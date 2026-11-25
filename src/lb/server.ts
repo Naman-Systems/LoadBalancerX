@@ -68,27 +68,6 @@ export class ProxyServer {
         }
       };
 
-      const upstream = http.request(
-        {
-          host: backend.host,
-          port: backend.port,
-          method: req.method,
-          path: req.url,
-          headers: req.headers,
-          timeout: this.deps.config.requestTimeoutMs,
-        },
-        (upstreamRes) => {
-          this.deps.health.recordSuccess(backend.id);
-          res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
-          upstreamRes.pipe(res);
-          upstreamRes.on("end", finish);
-          upstreamRes.on("error", () => {
-            res.destroy();
-            finish();
-          });
-        },
-      );
-
       const failConnection = () => {
         if (settled) {
           return;
@@ -102,6 +81,28 @@ export class ProxyServer {
         }
         finish();
       };
+
+      const upstream = http.request(
+        {
+          host: backend.host,
+          port: backend.port,
+          method: req.method,
+          path: req.url,
+          headers: req.headers,
+          timeout: this.deps.config.requestTimeoutMs,
+        },
+        (upstreamRes) => {
+          res.writeHead(upstreamRes.statusCode ?? 502, upstreamRes.headers);
+          upstreamRes.pipe(res);
+          upstreamRes.on("end", () => {
+            if (!settled) {
+              this.deps.health.recordSuccess(backend.id);
+            }
+            finish();
+          });
+          upstreamRes.on("error", failConnection);
+        },
+      );
 
       upstream.on("error", failConnection);
       upstream.on("timeout", () => {
